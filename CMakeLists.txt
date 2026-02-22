@@ -25,16 +25,18 @@ FetchContent_Declare(
 FetchContent_GetProperties(preloader_android)
 if(NOT preloader_android_POPULATED)
     FetchContent_Populate(preloader_android)
-    
+
     file(READ "${preloader_android_SOURCE_DIR}/src/pl/Logger.h" LOGGER_CONTENT)
     string(REPLACE "#include <format>" "#include <fmt/format.h>" LOGGER_CONTENT "${LOGGER_CONTENT}")
     string(REPLACE "std::vformat" "fmt::vformat" LOGGER_CONTENT "${LOGGER_CONTENT}")
     string(REPLACE "std::make_format_args" "fmt::make_format_args" LOGGER_CONTENT "${LOGGER_CONTENT}")
     file(WRITE "${preloader_android_SOURCE_DIR}/src/pl/Logger.h" "${LOGGER_CONTENT}")
-    
-    add_subdirectory(${preloader_android_SOURCE_DIR} ${preloader_android_BINARY_DIR})
-endif()
 
+    add_subdirectory(${preloader_android_SOURCE_DIR} ${preloader_android_BINARY_DIR})
+
+    target_link_libraries(preloader PUBLIC fmt::fmt)
+    target_include_directories(preloader PUBLIC ${fmt_SOURCE_DIR}/include)
+endif()
 
 add_library(clt SHARED
     src/main.cpp
@@ -45,16 +47,17 @@ target_include_directories(clt PUBLIC
     ${preloader_android_SOURCE_DIR}/src
 )
 
+target_link_options(clt PRIVATE
+    -static-libstdc++
+)
+
 target_link_libraries(clt PRIVATE
     preloader
     fmt::fmt
 )
 
-target_link_options(clt PRIVATE
-    -static-libstdc++
-)
-
-
 set_target_properties(clt PROPERTIES
     OUTPUT_NAME "clt"
 )
+
+install(TARGETS clt LIBRARY DESTINATION mods)
