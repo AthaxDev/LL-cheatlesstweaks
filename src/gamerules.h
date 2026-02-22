@@ -53,13 +53,16 @@ enum class GameRulesIndex : int {
 };
 
 struct GameRule {
-    std::byte  pad0[0x04];        // 0x00
-    bool       mEnabled;          // 0x04
-    std::byte  pad1[0x03];        // 0x05
-    std::string mName;            // 0x08 (libstdc++ = 0x18 bytes)
-    std::byte  pad2[0x0B];        // 0x20 → 0x2B
-    bool       mRequiresCheats;   // 0x2B
-    std::byte  pad3[0x90 - 0x2C]; // rest
+    int         mType;           // 0x00
+    union {
+        bool    mBool;           // 0x04 for bool rules
+        int     mInt;            // 0x04 for int rules
+    } mValue;
+    std::byte   pad1[0x03];      // 0x05
+    std::string mName;           // 0x08
+    std::byte   pad2[0x03];      // 0x20 (after 0x18-byte string)
+    bool        mRequiresCheats; // 0x2B
+    std::byte   pad3[0x90 - 0x2C];
 };
 
 #include <vector>
