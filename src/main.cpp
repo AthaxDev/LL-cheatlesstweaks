@@ -55,8 +55,9 @@ extern "C" [[gnu::visibility("default")]] void mod_init() {
     };
 
     auto gRules_addr = scan(
-        "55 41 57 41 56 41 55 41 54 53 48 81 EC ?? ?? 00 00 49 89 ?? 64 48 8B 04 25 28 00 00 00 48 89 84 24 ?? 01 00 00 4C ?? ?? 18 ?? 8B ?? 18"_sig,//114
-           "41 57 41 56 41 55 41 54 53 48 81 EC ?? ?? 00 00 48 89 ?? 64 48 8B 04 25 28 00 00 00 48 89 84 24 ?? 01 00 00 4C ?? ?? 18 ?? 8B ?? 20"_sig//130
+    // Try matching mid-function unique byte sequences instead of prologue
+    "?? 03 00 AA ?? ?? 40 F9 ?? ?? 40 F9 ?? ?? 40 B9"_sig,  // common ARM64 load chain
+    "FD 7B ?? A9 FD 03 00 91 ?? ?? ?? A9 ?? ?? ?? A9"_sig   // prologue fallback
     );
 
     if (!gRules_addr)
