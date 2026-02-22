@@ -35,7 +35,6 @@ if(NOT preloader_android_POPULATED)
     add_subdirectory(${preloader_android_SOURCE_DIR} ${preloader_android_BINARY_DIR})
 endif()
 
-target_link_libraries(preloader PUBLIC fmt::fmt)
 
 add_library(clt SHARED
     src/main.cpp
@@ -43,6 +42,12 @@ add_library(clt SHARED
 
 target_include_directories(clt PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${preloader_android_SOURCE_DIR}/src
+)
+
+target_link_libraries(clt PRIVATE
+    preloader
+    fmt::fmt
 )
 
 target_link_options(clt PRIVATE
