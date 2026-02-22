@@ -14,20 +14,6 @@ using GameRules_registerRules_t = void (*)(GameRules*);
 
 static GHook g_registerRules_hook = nullptr;
 static GameRules_registerRules_t g_registerRules_orig = nullptr;
-void findRequiresCheatsOffset(GameRules* gRules);
-
-static void GameRules_registerRules(GameRules* self) {
-    g_registerRules_orig(self);
-
-    LOGI("mGameRules.size() = %zu", self->mGameRules.size());
-
-    if (self->mGameRules.size() > 16) {
-        findRequiresCheatsOffset(self);
-    } else {
-        LOGE("Rules not populated yet! size=%zu", self->mGameRules.size());
-    }
-}
-
 
 void findRequiresCheatsOffset(GameRules* gRules) {
     auto& rules = gRules->mGameRules;
@@ -46,6 +32,18 @@ void findRequiresCheatsOffset(GameRules* gRules) {
             safe1[i]  == 0x00 && safe2[i]  == 0x00) {
             LOGI(">>> MATCH offset: 0x%02X", i);
         }
+    }
+}
+
+static void GameRules_registerRules(GameRules* self) {
+    g_registerRules_orig(self);
+
+    LOGI("mGameRules.size() = %zu", self->mGameRules.size());
+
+    if (self->mGameRules.size() > 16) {
+        findRequiresCheatsOffset(self);
+    } else {
+        LOGE("Rules not populated yet! size=%zu", self->mGameRules.size());
     }
 }
 
