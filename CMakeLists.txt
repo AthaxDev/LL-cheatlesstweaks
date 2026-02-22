@@ -54,6 +54,7 @@ target_link_options(clt PRIVATE
 target_link_libraries(clt PRIVATE
     preloader
     fmt::fmt
+    log
 )
 
 set_target_properties(clt PROPERTIES
