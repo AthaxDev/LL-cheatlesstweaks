@@ -15,28 +15,20 @@ using GameRules_registerRules_t = void (*)(GameRules*);
 static GHook g_registerRules_hook = nullptr;
 static GameRules_registerRules_t g_registerRules_orig = nullptr;
 void findRequiresCheatsOffset(GameRules* gRules);
+
 static void GameRules_registerRules(GameRules* self) {
     g_registerRules_orig(self);
 
-    // Find the real offset first
-    findRequiresCheatsOffset(self);
+    LOGI("mGameRules.size() = %zu", self->mGameRules.size());
 
-    // Then patch using raw offset instead of struct field
-    // Replace 0x2B with whatever the scan gives you
-    constexpr int kRequiresCheatsOffset = 0x2B; // UPDATE THIS after seeing logcat
-
-    auto patch = [&](GameRulesIndex idx) {
-        uint8_t* raw = reinterpret_cast<uint8_t*>(
-            &self->mGameRules[(int)idx]
-        );
-        raw[kRequiresCheatsOffset] = 0x00;
-        LOGI("Patched rule %d at offset 0x%02X", (int)idx, kRequiresCheatsOffset);
-    };
-
-    patch(GameRulesIndex::MobGriefing);
-    patch(GameRulesIndex::KeepInventory);
-    patch(GameRulesIndex::PlayerSleepingPercentage);
+    if (self->mGameRules.size() > 16) {
+        findRequiresCheatsOffset(self);
+    } else {
+        LOGE("Rules not populated yet! size=%zu", self->mGameRules.size());
+    }
 }
+
+
 void findRequiresCheatsOffset(GameRules* gRules) {
     auto& rules = gRules->mGameRules;
 
