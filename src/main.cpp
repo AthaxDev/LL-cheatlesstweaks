@@ -17,9 +17,44 @@ static GameRules_registerRules_t g_registerRules_orig = nullptr;
 
 static void GameRules_registerRules(GameRules* self) {
     g_registerRules_orig(self);
-    self->mGameRules[(int)GameRulesIndex::MobGriefing].mRequiresCheats = false;
-    self->mGameRules[(int)GameRulesIndex::PlayerSleepingPercentage].mRequiresCheats = false;
-    self->mGameRules[(int)GameRulesIndex::KeepInventory].mRequiresCheats = false;
+
+    // Find the real offset first
+    findRequiresCheatsOffset(self);
+
+    // Then patch using raw offset instead of struct field
+    // Replace 0x2B with whatever the scan gives you
+    constexpr int kRequiresCheatsOffset = 0x2B; // UPDATE THIS after seeing logcat
+
+    auto patch = [&](GameRulesIndex idx) {
+        uint8_t* raw = reinterpret_cast<uint8_t*>(
+            &self->mGameRules[(int)idx]
+        );
+        raw[kRequiresCheatsOffset] = 0x00;
+        LOGI("Patched rule %d at offset 0x%02X", (int)idx, kRequiresCheatsOffset);
+    };
+
+    patch(GameRulesIndex::MobGriefing);
+    patch(GameRulesIndex::KeepInventory);
+    patch(GameRulesIndex::PlayerSleepingPercentage);
+}
+void findRequiresCheatsOffset(GameRules* gRules) {
+    auto& rules = gRules->mGameRules;
+
+    // requiresCheats = TRUE
+    uint8_t* cheat1 = reinterpret_cast<uint8_t*>(&rules[(int)GameRulesIndex::MobGriefing]);   // 14
+    uint8_t* cheat2 = reinterpret_cast<uint8_t*>(&rules[(int)GameRulesIndex::KeepInventory]); // 13
+
+    // requiresCheats = FALSE
+    uint8_t* safe1  = reinterpret_cast<uint8_t*>(&rules[(int)GameRulesIndex::Pvp]);             // 15
+    uint8_t* safe2  = reinterpret_cast<uint8_t*>(&rules[(int)GameRulesIndex::ShowCoordinates]); // 16
+
+    LOGI("=== Scanning for mRequiresCheats offset ===");
+    for (int i = 0; i < 0x100; i++) {
+        if (cheat1[i] == 0x01 && cheat2[i] == 0x01 &&
+            safe1[i]  == 0x00 && safe2[i]  == 0x00) {
+            LOGI(">>> MATCH offset: 0x%02X", i);
+        }
+    }
 }
 
 static bool SetupGameRulesHook() {
