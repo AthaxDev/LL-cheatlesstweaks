@@ -14,7 +14,7 @@ using GameRules_registerRules_t = void (*)(GameRules*);
 
 static GHook g_registerRules_hook = nullptr;
 static GameRules_registerRules_t g_registerRules_orig = nullptr;
-
+void findRequiresCheatsOffset(GameRules* gRules);
 static void GameRules_registerRules(GameRules* self) {
     g_registerRules_orig(self);
 
